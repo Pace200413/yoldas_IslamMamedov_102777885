@@ -96,9 +96,8 @@ export default function MealItem({ item, restaurantId }) {
         });
       });
     });
-    const raw  = Number(item.price) || 0;
-    const base = item.discount ? +(raw * (1 - item.discount/100)).toFixed(2) : raw;
-    const finalPrice = base + deltaTotal();
+
+    const finalPrice = Number(item.price) + deltaTotal();
     add({
       id: item.id,
       name: item.name,
@@ -129,11 +128,7 @@ export default function MealItem({ item, restaurantId }) {
          <Text style={styles.price}>TMT {Number(item.price).toFixed(2)}</Text>
        )}
            </View>
-             <TouchableOpacity
-               style={[styles.addBtn, (item.outOfStock || loading) && { opacity: 0.4 }]}
-               onPress={item.outOfStock ? undefined : ensureLoaded}
-               disabled={item.outOfStock || loading}
-             >
+        <TouchableOpacity style={styles.addBtn} onPress={ensureLoaded} disabled={loading}>
           {loading ? <ActivityIndicator color="#fff" /> : <Ionicons name="add" size={18} color="#fff" />}
         </TouchableOpacity>
       </View>
@@ -170,8 +165,9 @@ export default function MealItem({ item, restaurantId }) {
           </ScrollView>
 
           <View style={styles.footer}>
-            <Text style={styles.total}>Total: TMT {total.toFixed(2)}</Text>
-              
+            <Text style={styles.total}>
+              Total: TMT {(Number(item.price) + deltaTotal()).toFixed(2)}
+            </Text>
             <TouchableOpacity style={styles.confirm} onPress={confirm}>
               <Text style={{ color: '#fff', fontWeight: '700' }}>Add to cart</Text>
             </TouchableOpacity>
