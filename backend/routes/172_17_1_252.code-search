@@ -1,0 +1,63 @@
+# Query: 172.17.1.252
+# ContextLines: 1
+
+12 results - 12 files
+
+backend/config/api.js:
+  23  
+  24: export const API_BASE = 'http://192.168.0.5:4000';
+
+backend/routes/ownerRoutes.js:
+  42  
+  43: export const API_BASE = 'http://192.168.0.5:4000';
+  44  
+
+screens/CartScreen.js:
+  28      ? 'http://10.0.2.2:4000'
+  29:     : 'http://192.168.0.5:4000';
+  30  
+
+screens/NewHomeScreen.js:
+  24  const API_BASE =
+  25:   Platform.OS === 'android' ? 'http://10.0.2.2:4000' : 'http://192.168.0.5:4000';
+  26  
+
+screens/OwnerScreens/EditItemModal.js:
+  12    ? 'http://10.0.2.2:4000'
+  13:   : 'http://192.168.0.5:4000';
+  14  
+
+screens/OwnerScreens/EmailScreen.js:
+  10  const API =
+  11:   Platform.OS === 'android' ? 'http://10.0.2.2:4000' : 'http://192.168.0.5:4000';
+  12  
+
+screens/OwnerScreens/MenuManagerScreen.js:
+  32    ? 'http://10.0.2.2:4000'
+  33:   : 'http://192.168.0.5:4000';
+  34  
+
+screens/OwnerScreens/OrdersScreen.js:
+  18      ? 'http://10.0.2.2:4000'
+  19:     : 'http://192.168.0.5:4000';
+  20  
+
+screens/OwnerScreens/SignInScreen.js:
+  21    ? 'http://10.0.2.2:4000'          // Android emulator
+  22:   : 'http://192.168.0.5:4000'; 
+  23  
+
+screens/OwnerScreens/SignUpScreen.js:
+  16      ? 'http://10.0.2.2:4000'
+  17:     : 'http://192.168.0.5:4000';
+  18  
+
+screens/OwnerScreens/SpecialsScreen.js:
+   9  const API =
+  10:   Platform.OS === 'android' ? 'http://10.0.2.2:4000' : 'http://192.168.0.5:4000';
+  11  
+
+screens/OwnerScreens/StockScreen.js:
+  17      ? 'http://10.0.2.2:4000'
+  18:     : 'http://192.168.0.5:4000';
+  19  
