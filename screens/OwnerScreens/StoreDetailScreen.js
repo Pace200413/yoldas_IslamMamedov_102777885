@@ -13,7 +13,7 @@ import StockScreen       from './StockScreen';
 import SpecialsScreen    from './SpecialsScreen';
 import OrdersScreen      from './OrdersScreen';
 import EmailScreen       from './EmailScreen';
-
+import ModifiersScreen   from './ModifiersScreen';
 const Tab = createMaterialTopTabNavigator();
 
 /* ───────────────── COMPONENT ───────────────── */
@@ -61,6 +61,7 @@ export default function StoreDetailScreen() {
         <Tab.Screen name="Menus"    component={MenuManagerScreen} initialParams={{ restaurantId }} />
         <Tab.Screen name="Stock"    component={StockScreen}       initialParams={{ restaurantId }} />
         <Tab.Screen name="Specials" component={SpecialsScreen}    initialParams={{ restaurantId }} />
+        <Tab.Screen name="Options"  component={ModifiersScreen}   initialParams={{ restaurantId }} />
         <Tab.Screen name="Orders"   component={OrdersScreen}      initialParams={{ restaurantId }} />
         <Tab.Screen name="Email"    component={EmailScreen}       initialParams={{ restaurantId }} />
       </Tab.Navigator>
