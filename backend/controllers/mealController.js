@@ -34,3 +34,17 @@ export const removeMeal = async (req, res) => {
     res.status(500).json({ error: 'DB error' });
   }
 };
+
+export const listSpecials = async (req, res) => {
+  const restaurantId = Number(req.params.restaurantId);
+  if (!Number.isInteger(restaurantId) || restaurantId <= 0) {
+    return res.status(400).json({ error: 'Invalid restaurantId' });
+  }
+  try {
+    const rows = await getSpecialsByRestaurant(restaurantId);
+    res.json(rows);
+  } catch (err) {
+    console.error('🍔 listSpecials error:', err);
+    res.status(500).json({ error: 'DB error' });
+  }
+};
