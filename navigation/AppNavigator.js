@@ -1,5 +1,7 @@
+// navigation/AppNavigator.js
 import React from 'react';
 import { createNativeStackNavigator } from '@react-navigation/native-stack';
+import { View, Text } from 'react-native';
 
 import NewHomeScreen from '../screens/NewHomeScreen';
 import HomeScreen from '../screens/HomeScreen';
@@ -16,6 +18,13 @@ import RestaurantListScreen from '../screens/RestaurantListScreen';
 
 const Stack = createNativeStackNavigator();
 
+// TEMP: if you suspect NewHomeScreen has the text warning, swap this in:
+// const NewHomeScreen = () => (
+//   <View style={{ flex: 1, alignItems: 'center', justifyContent: 'center' }}>
+//     <Text>Home</Text>
+//   </View>
+// );
+
 export default function AppNavigator() {
   return (
     <Stack.Navigator screenOptions={{ headerShown: false }} initialRouteName="NewHome">
@@ -30,12 +39,7 @@ export default function AppNavigator() {
       <Stack.Screen name="SignInScreen" component={SignInScreen} />
       <Stack.Screen name="SignUpScreen" component={SignUpScreen} />
       <Stack.Screen name="TestScreen" component={TestScreen} />
-       <Stack.Screen
-        name="RestaurantList"
-        component={RestaurantListScreen}
-        options={{ title: 'Restaurants' }}
-      />
-      
+      <Stack.Screen name="RestaurantList" component={RestaurantListScreen} options={{ title: 'Restaurants' }} />
     </Stack.Navigator>
   );
 }
