@@ -2,9 +2,11 @@ import {
   getAllRestaurantsFromDb,
   getRestaurantsByOwner,
   createRestaurantInDb,
-  approveRestaurantInDb
+  approveRestaurantInDb,
+  getPendingRestaurantsFromDb,
+  getOwnerContactForRestaurant,
 } from '../models/restaurantModel.js';
-
+import { notifyRestaurantApproved } from './emailController.js';
 /* GET /api/restaurants */
 export const listAllRestaurants = async (_req, res) => {
   try {
@@ -50,10 +52,23 @@ export const createRestaurant = async (req, res) => {
 /* PATCH /api/restaurants/:id/approve */
 export const approveRestaurant = async (req, res) => {
   try {
-    const row = await approveRestaurantInDb(
-      req.params.id,
-      req.body.approved
-    );
+    const row = await approveRestaurantInDb(req.params.id, req.body.approved);
+
+    // only notify when flipping to approved (truthy)
+    if (+req.body.approved === 1) {
+      const info = await getOwnerContactForRestaurant(req.params.id);
+      if (info?.ownerEmail) {
+        try {
+          await notifyRestaurantApproved({
+            to: info.ownerEmail,
+            ownerName: info.ownerName,
+            restaurantName: info.restaurantName,
+          });
+        } catch (e) {
+          console.warn('Email notify failed (continuing):', e.message);
+        }
+      }
+    }
     res.json(row);
   } catch (err) {
     console.error('Approve-restaurant error:', err);
@@ -75,5 +90,15 @@ export const updateRestaurantPhoto = async (req, res) => {
   } catch (err) {
     console.error('Photo update failed:', err);
     res.status(500).json({ error: 'Failed to update photo' });
+  }
+};
+
+export const listPendingRestaurants = async (_req, res) => {
+  try {
+    const rows = await getPendingRestaurantsFromDb();
+    res.json(rows);
+  } catch (err) {
+    console.error('Pending restaurants error:', err);
+    res.status(500).json({ error: 'Failed to fetch pending restaurants' });
   }
 };
