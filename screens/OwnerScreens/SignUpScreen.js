@@ -5,16 +5,16 @@ import {
   StyleSheet, SafeAreaView, ScrollView, Platform
 } from 'react-native';
 import { useNavigation } from '@react-navigation/native';
-
+import { useAuth } from '../../context/AuthContext';
 export default function SignUpScreen() {
   const [name, setName]     = useState('');
   const [email, setEmail]   = useState('');
   const [password, setPassword] = useState('');
   const nav = useNavigation();
-
+  const { signIn } = useAuth();
   const API_BASE = Platform.OS === 'android'
     ? 'http://10.0.2.2:4000'
-    : 'http://192.168.0.5:4000';
+    : 'http://172.17.0.48:4000';
 
   const handleSignUp = async () => {
     try {
@@ -27,7 +27,8 @@ export default function SignUpScreen() {
         const { error } = await res.json();
         return alert(error || 'Could not register');
       }
-      const { ownerId, restaurantName } = await res.json();
+        const { ownerId, restaurantName, token } = await res.json();
+        await signIn({ token, ownerId, restaurantName });
       nav.replace('OwnerHome', { ownerId, restaurantName });
     } catch (err) {
       console.error(err);
