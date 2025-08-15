@@ -1,43 +1,66 @@
-// controllers/emailController.js
+// backend/controllers/emailController.js
 import nodemailer from 'nodemailer';
 
-/**
- * Send an email to a single recipient or list of recipients.
- * Expects: { to, subject, message } in the request body
- */
-export async function sendEmail(req, res) {
-  try {
-    const { to, subject, message } = req.body;
+const {
+  SMTP_HOST,
+  SMTP_PORT = 587,
+  SMTP_USER,
+  SMTP_PASS,
+  MAIL_FROM = 'no-reply@yoldas.local',
+} = process.env;
 
-    if (!to || !subject || !message) {
-      return res.status(400).json({ error: 'Missing required fields' });
+// Create transporter if creds exist; otherwise we simulate.
+let transporter = null;
+if (SMTP_HOST && SMTP_USER && SMTP_PASS) {
+  transporter = nodemailer.createTransport({
+    host: SMTP_HOST,
+    port: Number(SMTP_PORT),
+    secure: Number(SMTP_PORT) === 465, // true for 465, false otherwise
+    auth: { user: SMTP_USER, pass: SMTP_PASS },
+  });
+}
+
+/**
+ * Route handler used by /api/email/send
+ * Body: { to, subject, text?, html? }
+ */
+export const sendEmail = async (req, res) => {
+  const { to, subject, text, html } = req.body || {};
+  if (!to || !subject || (!text && !html)) {
+    return res.status(400).json({ error: 'to, subject, and text or html are required' });
+  }
+
+  try {
+    if (!transporter) {
+      console.log('[EMAIL:simulate]', { to, subject, text: text ?? '(html provided)' });
+      return res.json({ simulated: true });
     }
 
-    // Setup transporter (use your SMTP credentials here)
-    const transporter = nodemailer.createTransport({
-      service: 'gmail',
-      auth: {
-        user: 'your.email@gmail.com',         // replace with your email
-        pass: 'your-app-password-or-pass',    // use app password if using Gmail
-      },
-    });
-
-    // Prepare email options
-    const mailOptions = {
-      from: '"Yoldaş" <your.email@gmail.com>', // sender name and address
-      to,                                      // string or array of emails
-      subject,
-      text: message,
-      html: `<p>${message}</p>`,               // optional: HTML version
-    };
-
-    // Send the email
-    const info = await transporter.sendMail(mailOptions);
-    console.log('Email sent:', info.messageId);
-
-    res.json({ success: true, messageId: info.messageId });
+    await transporter.sendMail({ from: MAIL_FROM, to, subject, text, html });
+    res.json({ sent: true });
   } catch (err) {
-    console.error('Email send error:', err);
-    res.status(500).json({ error: 'Failed to send email' });
+    console.error('sendEmail failed:', err);
+    res.status(500).json({ error: 'Email failed to send' });
   }
-}
+};
+
+/**
+ * Helper (used by restaurant approval flow)
+ */
+export const notifyRestaurantApproved = async ({ to, ownerName, restaurantName }) => {
+  const subject = `You're approved on Ýoldaş 🎉`;
+  const text =
+`Hi ${ownerName || 'there'},
+
+Good news! Your restaurant "${restaurantName}" has been approved.
+You can now sign in and start adding menu items and specials.
+
+— Ýoldaş Team`;
+
+  if (!transporter) {
+    console.log('[EMAIL:simulate:approved]', { to, subject, text });
+    return { simulated: true };
+  }
+  await transporter.sendMail({ from: MAIL_FROM, to, subject, text });
+  return { sent: true };
+};
