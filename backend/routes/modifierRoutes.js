@@ -1,14 +1,35 @@
 import express from 'express';
 import {
-  getMealModifiers, postGroup, linkGroupToMeal,
-  postOption, removeOption
+  getMealModifiers,
+  listGroups,
+  postGroup,
+  patchGroup,
+  removeGroup,
+  linkGroupToMeal,
+  unlinkGroupFromMeal,
+  postOption,
+  patchOption,
+  removeOption,
 } from '../controllers/modifierController.js';
 
-const r = express.Router();
-r.get   ('/meals/:mealId',                     getMealModifiers);
-r.post  ('/restaurants/:restaurantId/groups',  postGroup);
-r.post  ('/meals/:mealId/groups/:groupId',     linkGroupToMeal);
-r.post  ('/groups/:groupId/options',           postOption);
-r.delete('/options/:optionId',                 removeOption);
+const router = express.Router();
 
-export default r;
+/* ── Query ──────────────────────────────────────────────── */
+router.get('/meals/:mealId', getMealModifiers);
+router.get('/restaurants/:restaurantId/groups', listGroups);
+
+/* ── Groups ─────────────────────────────────────────────── */
+router.post('/restaurants/:restaurantId/groups', postGroup);
+router.patch('/groups/:groupId', patchGroup);
+router.delete('/groups/:groupId', removeGroup);
+
+/* ── Link/unlink groups to meals ────────────────────────── */
+router.post('/meals/:mealId/groups/:groupId', linkGroupToMeal);
+router.delete('/meals/:mealId/groups/:groupId', unlinkGroupFromMeal);
+
+/* ── Options ────────────────────────────────────────────── */
+router.post('/groups/:groupId/options', postOption);
+router.patch('/options/:optionId', patchOption);
+router.delete('/options/:optionId', removeOption);
+
+export default router;
