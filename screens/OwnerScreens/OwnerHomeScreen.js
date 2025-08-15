@@ -1,3 +1,4 @@
+// screens/OwnerScreens/OwnerHomeScreen.js
 import React, { useState, useEffect } from 'react';
 import {
   View,
@@ -9,6 +10,7 @@ import {
   SafeAreaView,
   ActivityIndicator,
   Platform,
+  Alert,
 } from 'react-native';
 import { useRoute, useNavigation } from '@react-navigation/native';
 import { Feather, Ionicons } from '@expo/vector-icons';
@@ -17,64 +19,81 @@ import * as ImagePicker from 'expo-image-picker';
 
 export default function OwnerHomeScreen() {
   const nav = useNavigation();
-  const { ownerId, restaurantName } = useRoute().params;
+  const { ownerId, restaurantName } = useRoute().params || {};
 
   const [myRestaurants, setMyRestaurants] = useState([]);
   const [loading, setLoading] = useState(true);
 
-  const API_BASE = 'http://192.168.0.5:4000'; // <-- Update to match your backend IP
+  // Update to match your backend IP
+  const API_BASE = 'http://172.17.0.48:4000';
 
-  // Fetch owner's restaurants
+  /* ───────── fetch only this owner’s restaurants ───────── */
   const fetchRestaurants = async () => {
     try {
       const { data } = await axios.get(
         `${API_BASE}/api/owners/${ownerId}/restaurants`
       );
-      setMyRestaurants(data);
+      setMyRestaurants(data || []);
     } catch (err) {
       console.error('Owner fetch error:', err);
+      Alert.alert('Error', 'Failed to load restaurants.');
     } finally {
       setLoading(false);
     }
   };
 
   useEffect(() => {
-    fetchRestaurants();
+    if (ownerId) fetchRestaurants();
   }, [ownerId]);
 
-  // Update restaurant image
+  /* ───────── Update restaurant image ───────── */
   const updateRestaurantPhoto = async (restaurantId) => {
-  try {
-    const permission = await ImagePicker.requestMediaLibraryPermissionsAsync();
-    if (!permission.granted) {
-      return alert('Permission to access gallery is required!');
-    }
+    try {
+      const permission = await ImagePicker.requestMediaLibraryPermissionsAsync();
+      if (!permission.granted) {
+        return Alert.alert('Permission needed', 'Gallery access is required.');
+      }
 
-    const result = await ImagePicker.launchImageLibraryAsync({
-      base64: true,
-      allowsEditing: true,
-      quality: 0.3,
-    });
-
-    if (!result.canceled) {
-      const base64Image = `data:image/jpeg;base64,${result.assets[0].base64}`;
-
-      await axios.put(`${API_BASE}/api/restaurants/${restaurantId}/photo`, {
-        photo: base64Image,
+      const result = await ImagePicker.launchImageLibraryAsync({
+        base64: true,
+        allowsEditing: true,
+        quality: 0.3,
       });
 
-      fetchRestaurants(); // Refresh list
-    }
-  } catch (err) {
-    console.error('Photo update error:', err);
-    alert('Failed to update photo.');
-  }
-};
+      if (!result.canceled) {
+        const base64Image = `data:image/jpeg;base64,${result.assets[0].base64}`;
 
+        await axios.put(`${API_BASE}/api/restaurants/${restaurantId}/photo`, {
+          photo: base64Image,
+        });
+
+        fetchRestaurants(); // Refresh list
+      }
+    } catch (err) {
+      console.error('Photo update error:', err);
+      Alert.alert('Error', 'Failed to update photo.');
+    }
+  };
+
+  /* ───────── Preview customer view (no logout) ───────── */
+  const previewRestaurant = (restId) => {
+    if (!restId) {
+      return Alert.alert('No restaurants yet', 'Please add a restaurant first.');
+    }
+    // Navigate to top-level RestaurantMenu without resetting owner stack
+    const parent = nav.getParent?.();
+    (parent || nav).navigate('RestaurantMenu', {
+      restaurantId: restId,
+      preview: true,
+    });
+  };
+
+  /* ───────── Render a restaurant card ───────── */
   const renderStore = ({ item }) => (
     <TouchableOpacity
       style={styles.card}
       onPress={() => nav.navigate('StoreDetail', { store: item })}
+      activeOpacity={0.9}
     >
       <Image
         source={
@@ -82,6 +101,7 @@ export default function OwnerHomeScreen() {
         }
         style={styles.cardImage}
       />
+
       <View style={styles.cardContent}>
         <Text style={styles.cardTitle}>{item.rName}</Text>
         <Text style={styles.cardSubtitle} numberOfLines={2}>
@@ -95,23 +115,32 @@ export default function OwnerHomeScreen() {
         </View>
       </View>
 
-      <TouchableOpacity onPress={() => updateRestaurantPhoto(item.id)}>
+      <TouchableOpacity
+        onPress={() => updateRestaurantPhoto(item.id)}
+        style={{ paddingHorizontal: 6, paddingVertical: 4 }}
+      >
         <Feather name="edit-2" size={18} color="#666" />
       </TouchableOpacity>
     </TouchableOpacity>
   );
 
+  const firstRestaurantId = myRestaurants?.[0]?.id;
+
   return (
     <SafeAreaView style={styles.container}>
       {/* header */}
       <View style={styles.header}>
-        <TouchableOpacity onPress={() => nav.openDrawer()}>
+        <TouchableOpacity onPress={() => nav.openDrawer?.()} style={{ padding: 8 }}>
           <Ionicons name="menu" size={26} color="#000" />
         </TouchableOpacity>
 
-        <Text style={styles.greeting}>Hello, {restaurantName}</Text>
+        <Text style={styles.greeting}>Hello, {restaurantName || 'Owner'}</Text>
 
-        <TouchableOpacity style={styles.switchBtn} onPress={() => nav.navigate('NewHome')}>
+        <TouchableOpacity
+          style={styles.switchBtn}
+          onPress={() => previewRestaurant(firstRestaurantId)}
+          activeOpacity={0.85}
+        >
           <Ionicons name="eye" size={24} color="#000" />
         </TouchableOpacity>
 
@@ -145,6 +174,7 @@ export default function OwnerHomeScreen() {
             owner: { ownerId, restaurantName },
           })
         }
+        activeOpacity={0.9}
       >
         <Feather name="plus-circle" size={24} color="#fff" />
         <Text style={styles.addButtonText}>Add Restaurant</Text>
