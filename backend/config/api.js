@@ -1,24 +1,21 @@
-import { View, Text, TouchableOpacity, StyleSheet } from 'react-native';
-let host   = '127.0.0.1';          // sensible default for Node
+// config/api.js  (used by your React Native app)
+let host = '127.0.0.1';
 
 try {
-  // -------- ONLY available inside the mobile bundle ----------
-  const { Platform }        = require('react-native');
-  const Constants           = require('expo-constants').default;
+  // Only available inside the RN bundle
+  const { Platform } = require('react-native');
+  const Constants = require('expo-constants').default;
 
-  // Pick correct host for emulator / device
   if (Platform.OS === 'android') {
-    host = '10.0.2.2';             // Android emulator loop-back
+    host = '10.0.2.2'; // Android emulator loopback
   } else {
-    // iOS simulator or physical device on LAN
-    const debugHost =
-      Constants.manifest?.debuggerHost ??
-      Constants.expoConfig?.hostUri;       // Expo SDK ≥49
-
-    host = debugHost ? debugHost.split(':')[0] : '127.0.0.1';
+    // iOS simulator or physical device on LAN via Expo
+    const uri = Constants?.expoConfig?.hostUri || Constants?.manifest?.debuggerHost;
+    host = uri ? uri.split(':')[0] : host;
   }
-} catch (_) {
-  /* We’re in Node - keep default host */
+} catch {
+  // Running in Node (SSR/scripts) – keep default host
 }
 
-export const API_BASE = 'http://192.168.0.5:4000';
+export const API_BASE = `http://${host}:4000`;
+export default API_BASE;
