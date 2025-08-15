@@ -61,3 +61,27 @@ export const approveRestaurantInDb = async (id, approved) => {
   );
   return rows[0];
 };
+
+export const getPendingRestaurantsFromDb = async () => {
+  const [rows] = await pool.query(`
+    SELECT r.id, r.rName, r.loc, r.cuisine, r.photo, r.created_at,
+           r.owner_id, o.name AS ownerName, o.email AS ownerEmail
+      FROM restaurants r
+      JOIN owners o ON o.id = r.owner_id
+     WHERE r.approved = 0
+     ORDER BY r.created_at DESC
+  `);
+  return rows;
+};
+
+/** Helper: owner contact for one restaurant (for email notify) */
+export const getOwnerContactForRestaurant = async (restaurantId) => {
+  const [rows] = await pool.query(
+    `SELECT o.email AS ownerEmail, o.name AS ownerName, r.rName AS restaurantName
+       FROM restaurants r
+       JOIN owners o ON o.id = r.owner_id
+      WHERE r.id = ?`,
+    [restaurantId]
+  );
+  return rows[0];
+};
